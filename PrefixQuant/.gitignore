@@ -1,0 +1,4 @@
+*.png
+*.pdf
+./attn_weights/
+./log/

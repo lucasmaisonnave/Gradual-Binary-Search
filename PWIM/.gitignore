@@ -1,0 +1,6 @@
+histograms/
+models/
+results/
+logs/
+__pycache__/
+data/
