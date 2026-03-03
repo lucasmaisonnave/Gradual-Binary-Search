@@ -130,26 +130,27 @@ def get_orthogonal_matrix(size, mode, device=utils.DEV):
 
 def get_layer_name(model, target_layer):
     """
-    Trouve le nom d'une couche spécifique dans un modèle.
+    Find the attribute name of a specific layer within its direct parent module.
 
     Args:
-        model (torch.nn.Module): Le modèle contenant la couche.
-        target_layer (torch.nn.Module): La couche dont on veut récupérer le nom.
+        model (torch.nn.Module): The model containing the layer.
+        target_layer (torch.nn.Module): The layer whose name to retrieve.
 
     Returns:
-        str: Le nom de la couche si trouvée, sinon None.
+        str: The attribute name of the layer in its parent, or None if not found.
     """
     for parent_name, parent in model.named_modules():
         for child_name, child in parent.named_children():
             if child is target_layer:
-                return child_name  # Retourne le nom exact de la couche dans son parent
-    return None  # Si non trouvé
+                return child_name
+    return None
 
 def expand_embedding(model, L, dim):
+    """
+    Expand the embedding weight matrix by `dim` extra columns, zero-padded.
+    Replaces the embedding layer in-place on its parent module.
+    """
     name = get_layer_name(model, L)
-    """
-    Étend la matrice de poids W à la nouvelle forme new_shape en remplissant les nouvelles dimensions avec des zéros.
-    """
     W = L.weight.data
     old_shape = W.shape
     new_dim =  old_shape[1] + dim
@@ -166,10 +167,12 @@ def expand_embedding(model, L, dim):
     return new_embedding
 
 def expand_linear(model, L, in_dim, out_dim):
+    """
+    Expand the linear layer weight matrix by `in_dim` extra input features and
+    `out_dim` extra output features, zero-padded. Replaces the layer in-place
+    on its parent module.
+    """
     name = get_layer_name(model, L)
-    """
-    Étend la matrice de poids W à la nouvelle forme new_shape en remplissant les nouvelles dimensions avec des zéros.
-    """
     W = L.weight.data
     
     old_shape = W.shape
@@ -303,7 +306,7 @@ def rotate_faster_down_proj(layer, model_type, hardK):
     if model_type == model_utils.LLAMA_MODEL or model_type == model_utils.QWEN_MODEL or model_type == model_utils.MISTRAL_MODEL:
         W = layer.mlp.down_proj
     else:
-        raise ValueError(f'Faster MLP is onlu supported for LLaMa models!')
+        raise ValueError(f'Faster MLP is only supported for LLaMA models!')
     
     dtype = W.weight.data.dtype
     W.weight.data = matmul_hadU_cuda_had(W.weight.data.float().cuda(), hardK)

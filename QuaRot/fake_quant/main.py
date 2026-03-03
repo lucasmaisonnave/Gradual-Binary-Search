@@ -326,8 +326,8 @@ def main():
     for v in metric_vals:
         L.append(metric_vals[v])
     import csv
-    fichier_csv = "./results/results_tasks.csv"
-    with open(fichier_csv, mode='a', newline='') as f:
+    csv_file = "./results/results_tasks.csv"
+    with open(csv_file, mode='a', newline='') as f:
         writer = csv.writer(f)
         writer.writerow(L)
     if args.wandb:
